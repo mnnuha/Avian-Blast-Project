@@ -4,13 +4,14 @@ const canvas = document. getElementById('game');
 const context = canvas.getContext('2d');
 
 
-const grid = 32;
+const grid = 44;
 
 const level1 = [
-    ['R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G'],
-    ['R', 'R', 'Y', 'Y', 'B', 'B', 'G'],
-    ['B', 'B', 'G', 'G', 'R', 'R', 'Y', 'Y'],
-    ['B', 'G', 'G', 'R', 'R', 'Y', 'Y']
+    ['R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G', 'R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G'],
+    ['R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G', 'Y', 'Y', 'R', 'R', 'B', 'B', 'G'],
+    ['B', 'B', 'G', 'G', 'R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G', 'R', 'R', 'Y'],
+    ['B', 'G', 'G', 'R', 'R', 'Y', 'Y', 'B', 'B', 'R', 'R', 'Y', 'Y', 'G', 'R'],
+    
 
 ];
 
@@ -193,8 +194,9 @@ function dropFloatingBubbles() {
         });
 }
 
+
 for (let row = 0; row < 10; row++) {
-    for (let col = 0; col < (row % 2 === 0 ? 8 : 7); col++){
+    for (let col = 0; col < (row % 2 === 0 ? 15 : 14); col++){
         const color = level1 [row]?. [col];
         createBubble(col * grid, row * grid, colorMap[color]);  
     }
@@ -358,6 +360,7 @@ document.addEventListener('keyup', (e) => {
         shootDir = 0;
     }
 });
+
 
 getNewBubble();
 requestAnimationFrame(loop);

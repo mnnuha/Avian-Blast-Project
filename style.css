@@ -6,12 +6,17 @@ html,body{
 }
 
 body{
-    background: black;
+    /*background-image: url(Assets/Bg.jpg);
+    background-size: cover;*/
+    background-color: black;
     display:flex;
     align-items: center;
     justify-content: center;
 }
 
+/*#game {
+   background-color: black;
+}
 
 
 
