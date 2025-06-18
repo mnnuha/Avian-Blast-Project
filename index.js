@@ -1,11 +1,12 @@
 
-
+//Get canvas and context
 const canvas = document. getElementById('game');
 const context = canvas.getContext('2d');
 
-
+//Game setup values
 const grid = 44;
 
+//Level layout mapped out with the color initials
 const level1 = [
     ['R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G', 'R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G'],
     ['R', 'R', 'Y', 'Y', 'B', 'B', 'G', 'G', 'Y', 'Y', 'R', 'R', 'B', 'B', 'G'],
@@ -15,6 +16,7 @@ const level1 = [
 
 ];
 
+//pastel color map for the respective initials
 const colorMap = {
      'R': '#FFB3BA',
      'G': '#BFFCC6',
@@ -24,12 +26,17 @@ const colorMap = {
 
 const colors = Object.values(colorMap);
 
+//Game variables
 const bubbleGap = 1;
 const wallSize = 4;
 const bubbles = [];
 let particles = [];
+let score = 0;
+let gameOver = false;
+let gameWon = false;
+let showTutorial = true;
 
-
+//Math functions
 function degToRad(deg) {
     return (deg * Math.PI) / 180;
 }
@@ -62,6 +69,7 @@ function collides(obj1, obj2) {
     return getDistance(obj1, obj2) < obj1.radius + obj2.radius;
 }
 
+//Find closest bubble for colllision purposes
 function getClosestBubble(obj, activeState = false) {
     const closestBubbles = bubbles
         .filter(bubble => bubble.active == activeState && collides(obj, bubble));
@@ -80,6 +88,7 @@ function getClosestBubble(obj, activeState = false) {
             .sort((a,b) => a.distance - b.distance)[0].bubble;  
 }
 
+//Creates and places a bubble in the grid
 function createBubble(x, y, color) {
     const row = Math.floor(y / grid);
     const col = Math.floor(x / grid);
@@ -99,7 +108,7 @@ function createBubble(x, y, color) {
 
 }
 
-
+// Gets neighboring bubbles
 function getNeighbors(bubble) {
     const neighbors = [];
 
@@ -134,7 +143,7 @@ function getNeighbors(bubble) {
 }
 
      
-
+//Remove matching bubbles (3+ of same color)
 function removeMatch(targetBubble){
     const matches = [targetBubble];
 
@@ -157,12 +166,14 @@ function removeMatch(targetBubble){
 
 
     if (matches.length >= 3) {
+        score += matches.length * 10;
         matches.forEach(bubble => {
             bubble.active = false;
         });
     }
 } 
 
+//Drops any disconnected bubbles
 function dropFloatingBubbles() {
     const activeBubbles = bubbles.filter(bubble => bubble.active);
     activeBubbles.forEach(bubble => bubble.processed = false);
@@ -192,9 +203,15 @@ function dropFloatingBubbles() {
                 active: true 
             });
         });
+
+        const remaining = bubbles.filter(b => b.active);
+        if (remaining.length === 0) {
+            gameWon = true;
+            gameOver = true;
+        }
 }
 
-
+//Initialize grid bubbles
 for (let row = 0; row < 10; row++) {
     for (let col = 0; col < (row % 2 === 0 ? 15 : 14); col++){
         const color = level1 [row]?. [col];
@@ -202,6 +219,7 @@ for (let row = 0; row < 10; row++) {
     }
 }
 
+//Current bubble setup (the shooting bubble)
 const curBubblePos = {
     x: canvas.width / 2, 
     y: canvas.height - grid * 1.5
@@ -218,35 +236,98 @@ const curBubble = {
 
 };
 
+//Shooting angle controls
 let shootDeg = 0;
-
 const minDeg = degToRad(-60);
 const maxDeg = degToRad(60);
-
 let shootDir = 0;
 
+
+//Generates a new bubble to shoot
 function getNewBubble() {
     curBubble.x = curBubblePos.x;
     curBubble.y = curBubblePos.y;
     curBubble.dx = curBubble.dy = 0;
 
-    const randInt = getRandomInt(0, colors.length -1);
-    curBubble.color = colors[randInt];
+    const activeColors = [...new Set(bubbles.filter(b => b.active).map(b => b.color))];
+
+    if (activeColors.length === 0) {
+        gameOver = true;
+        gameWon = true;
+        return;
+
+    }
+
+    const randInt = getRandomInt(0, activeColors.length -1);
+    curBubble.color = activeColors[randInt];
 }
 
+
+//Handles collisions when a bubble hits another
 function handleCollision(bubble) {
     bubble.color = curBubble.color;
     bubble.active = true;
-    getNewBubble();
     removeMatch(bubble);
     dropFloatingBubbles();
+
+    if (!gameOver) {
+        getNewBubble();
+    }
+    
 }
 
-
+//Main animation loop
 function loop() {
     requestAnimationFrame(loop);
     context.clearRect(0,0,canvas.width,canvas.height);
 
+    if (showTutorial) {
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        //Show tutorial screen
+        if (showTutorial) {
+            context.fillStyle = 'black';
+            context.font = '24px Arial';
+            context.textAlign = 'center';
+    
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            context.fillText('Bubble Shooter Tutorial', centerX, centerY - 100);
+            context.font = '18px Arial'
+            context.fillText('Use ← and → arrows to aim', centerX, centerY - 50);
+            context.fillText('Press SPACE to shoot', centerX, centerY - 20);
+            context.fillText('Match 3 or more bubbles to clear them', centerX, centerY + 10);
+            context.fillText('Clear all bubbles to win!', centerX, centerY + 40);
+            context.fillText('Press ENTER to start', centerX, centerY + 90);
+
+            return;
+        }
+    }
+
+    //Game over screen 
+    if (gameOver) {
+        context.fillStyle = 'rgba(0,0,0,0.7)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.fillStyle = 'white';
+        context.font = '32px Arial';
+        context.textAlign = 'center';
+        context.fillText(gameWon ? 'You Win!' : 'Game Over!', canvas.width / 2, canvas.height / 2 - 20);
+        context.font = '24px Arial';
+        context.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 20);
+        context.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 60);
+        
+        context.fillStyle = 'white';
+        context.font = '20px Arial';
+        context.textAlign = 'left';
+        context.fillText('Score: ' + score, 10, canvas.height - 10);
+        return;
+       
+    }
+
+    //Aiming logic
     shootDeg = shootDeg + degToRad(2) * shootDir;
 
     if (shootDeg < minDeg) {
@@ -257,6 +338,7 @@ function loop() {
         shootDeg = maxDeg
     }
 
+    //Moves the current bubble (shooting bubble)
     curBubble.x += curBubble.dx;
     curBubble.y += curBubble.dy;
 
@@ -264,17 +346,20 @@ function loop() {
         curBubble.x = wallSize + grid / 2;
         curBubble.dx *= -1;
     }
+
+    //Checks if the  bubbles hits the right wall and bounce it back
     else if (curBubble.x + grid / 2 > canvas.width - wallSize) {
         curBubble.x = canvas.width - wallSize - grid / 2;
         curBubble.dx *= -1;
     }
     
-
+    //Handles collsion if the bubble hits the top wall(ceiling)
     if (curBubble. y - grid / 2 < wallSize) {
         const closestBubble = getClosestBubble(curBubble);
         handleCollision(closestBubble);
     }
 
+    //Cheeck for collision with any existing bubbles
     for (let i = 0; i < bubbles.length; i++) {
         const bubble = bubbles[i];
 
@@ -290,18 +375,26 @@ function loop() {
         }
     }
 
+    //Animate falling particles
     particles.forEach(particle => {
         particle.y += 8;
     });
 
     particles = particles.filter(particles => particles.y < canvas.height - grid / 2); 
 
+    //Draws the live score counter   
+    context.fillStyle = 'white';
+    context.font = '20px Arial';
+    context.textAlign = 'left';
+    context.fillText('Score: ' + score, 10, canvas.height - 10);
 
+    //Draws the walls
     context.fillStyle = 'lightgrey';
     context.fillRect(0, 0, canvas.width, wallSize);
     context.fillRect(0, 0, wallSize, canvas.height);
     context.fillRect(canvas.width - wallSize, 0, wallSize, canvas.height);
 
+    //Draws alll bubbles
     bubbles.concat(particles).forEach(bubble => {
         if (!bubble.active) return;
         context.fillStyle = bubble.color;
@@ -311,6 +404,7 @@ function loop() {
         context.fill();
     });
 
+    //Draw aiming arrow
     context.save();
 
     context.translate(curBubblePos.x, curBubblePos.y);
@@ -331,6 +425,7 @@ function loop() {
 
     context.restore();
 
+    //Draw current bubble
     context.fillStyle = curBubble.color;
     context.beginPath();
     context.arc(curBubble.x, curBubble.y, curBubble.radius, 0, 2 * Math.PI);
@@ -338,7 +433,14 @@ function loop() {
 
 }
 
+//Handles keyboard controls
 document.addEventListener( 'keydown', (e) => {
+
+    if (showTutorial && (e.code === 'Enter')) {
+        showTutorial = false;
+        getNewBubble();
+    }
+
     if (e.code === 'ArrowLeft') {
         shootDir = -1;
     }
@@ -349,6 +451,10 @@ document.addEventListener( 'keydown', (e) => {
     if (e.code === 'Space' && curBubble.dx === 0 && curBubble.dy === 0) {
         curBubble.dx = Math.sin(shootDeg) * curBubble.speed;
         curBubble.dy = -Math.cos(shootDeg) * curBubble.speed;
+    }
+
+    if (e.code === 'KeyR' && gameOver) {
+        window.location.reload();
     }
 });
 
@@ -361,6 +467,6 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-
+//Start game
 getNewBubble();
-requestAnimationFrame(loop);
+requestAnimationFrame(loop); 
