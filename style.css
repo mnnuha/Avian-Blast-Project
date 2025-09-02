@@ -1,22 +1,9 @@
-
-
-html,body{
-    height: 100%;
-    margin: 0;
+#viewport{
+    margin: auto;
+    border-radius: 5px;
 }
 
-body{
-    /*background-image: url(Assets/Bg.jpg);
-    background-size: cover;*/
-    background-color: black;
-    display:flex;
-    align-items: center;
-    justify-content: center;
+div{
+    width: 100%;
+    text-align: center;
 }
-
-/*#game {
-   background-color: black;
-}
-
-
-
