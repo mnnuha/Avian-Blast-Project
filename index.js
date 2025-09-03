@@ -840,28 +840,35 @@ window.onload = function() {
         
         //Draws the player(canon) and the next bubble to shoot
         function renderPlayer() {
-            var centerx = player.x + level.tilewidth/2;
-            var centery = player.y + level.tileheight/2;
+            
+            const centerx = player.x + level.tilewidth / 2;
+            const centery = player.y + level.tileheight / 2;
 
+            const arrowLength = 2.5 * level.tilewidth;
+            const dir = getDirection(player.angle);
+
+
+            context.lineWidth = 2;
+            context.strokeStyle = "#000033";
+            context.beginPath();
+            context.moveTo(centerx, centery);
+            context.lineTo(centerx + arrowLength * dir.dx,
+                           centery + arrowLength * dir.dy);
+
+            context.stroke();
+
+            drawTrajectory(centerx + dir.dx * arrowLength, centery + dir.dy * arrowLength, player.angle);
+            
             //Draw cannon base
             context.fillStyle = "#7a7a7a";
             context.beginPath();
             context.arc(centerx, centery, level.radius+12, 0, 2*Math.PI, false);
             context.fill();
-            context.linewidth = 2;
+            context.lineWidth = 2;
             context.strokeStyle = "#8c8c8c";
             context.stroke();
 
-            context.lineWidth = 2;
-            context.strokeStyle = "#000033"
-            context.beginPath();
-
-            //Draw aiming line
-            context.moveTo(centerx, centery);
-            context.lineTo(centerx + 1.5*level.tilewidth * Math.cos(degToRad(player.angle)), 
-            centery - 1.5*level.tileheight * Math.sin(degToRad(player.angle)));
-            context.stroke();
-
+                        
             //Draw the next bubble in the queue
             drawBubble(player.nextbubble.x, player.nextbubble.y, player.nextbubble.tiletype);
 
@@ -872,6 +879,72 @@ window.onload = function() {
 
         }
 
+        function getDirection(angle) {
+            const rad = degToRad(angle);
+            return {
+                dx: Math.cos(rad), 
+                dy: -Math.sin(rad) 
+            };
+        }
+
+        function drawTrajectory(px, py, angle) {
+            const step = 2;
+            let dir = getDirection(angle);
+            let currentAngle = angle;
+
+            const maxVertical  = 100;
+            const maxDiagonal = 300;
+            const maxSteps = maxVertical + (1 - Math.abs(dir.dy)) * (maxDiagonal - maxVertical);
+
+            let curDir = {dx: dir.dx, dy: dir.dy};
+
+            context.strokeStyle = "rgba(222, 59, 59, 0.4)";
+            context.lineWidth = 2;
+            context.setLineDash([5, 5]);
+            context.beginPath();
+            context.moveTo(px, py);
+
+            const topBoundary = level.y;
+          
+            
+            for (let i = 0; i < maxSteps; i++) {
+                // Predict next step
+                let nextX = px + curDir.dx * step;
+                let nextY = py + curDir.dy * step;
+
+                // Bounce off left wall
+                if (nextX <= level.x) {
+                    nextX = level.x + (level.x - nextX); // reflect distance past wall
+                    currentAngle = 180 - currentAngle;
+                    curDir = getDirection(currentAngle);
+                }
+
+                // Bounce off right wall
+                if (nextX >= level.x + level.width - level.tilewidth) {
+                    nextX = (level.x + level.width - level.tilewidth) - (nextX - (level.x + level.width - level.tilewidth));
+                    currentAngle = 180 - currentAngle;
+                    curDir = getDirection(currentAngle);
+                }
+
+                // Stop at top
+                if (nextY <= topBoundary) {
+                    nextY = topBoundary;
+                    px = nextX;
+                    py = nextY;
+                    context.lineTo(px, py);
+                    break;
+                }
+
+                px = nextX;
+                py = nextY;
+                context.lineTo(px, py);
+            }
+
+            context.stroke();
+            context.setLineDash([]);
+        }
+
+            
         //Converts grid column/row to canvas x/y coordinates
         function getTileCoordinate(column, row) {
             var tilex = level.x + column * level.tilewidth;
@@ -1001,8 +1074,8 @@ window.onload = function() {
             }
 
             //Clamp angle between bounds
-            var lbound = 8;
-            var ubound = 172;
+            var lbound = 1;
+            var ubound = 179;
             if (mouseangle > 90 && mouseangle < 270) {
 
                 if (mouseangle > ubound) {
