@@ -41,7 +41,7 @@ window.onload = function() {
         this.removed = false;
         this.shift = shift;
         this.velocity = 0;
-        this.alpha = 1, 
+        this.alpha = 1;
         this.processed = false;
     };
 
@@ -77,7 +77,7 @@ window.onload = function() {
     var bubblecolors = 7;
 
     //Game states
-    var gamestates = { init: 0, ready: 1, shootbubble: 2, removecluster: 3, gameover: 4};
+    var gamestates = { init: 0, ready: 1, shootbubble: 2, removecluster: 3, gameover: 4, gamewin: 5};
     var gamestate = gamestates.init;
 
     var score = 0;
@@ -237,7 +237,7 @@ window.onload = function() {
             //Bounce on walls
             if (player.bubble.x <= level.x) {
                 
-                player.bubble.angle = 280 - player.bubble.angle;
+                player.bubble.angle = 180 - player.bubble.angle;
                 player.bubble.x = level.x;
 
             } else if (player.bubble.x + level.tilewidth >= level.x + level.width) {
@@ -312,7 +312,7 @@ window.onload = function() {
                     var tile = cluster[i];
 
                     if (tile.type >= 0) {
-                        vart = true;
+                        tilesleft = true;
 
                         tile.alpha -= dt * 15;
                         if (tile.alpha < 0) {
@@ -411,6 +411,7 @@ window.onload = function() {
                     }
                     
                 }
+                
             } else {
                 addtile = true;
             }
@@ -440,21 +441,17 @@ window.onload = function() {
             }
 
             turncounter++;
-            if (turncounter >= 8) {
+            if (currentLevel > 1 && turncounter >= 8) {
 
-                addBubbles();
-                turncounter = 0;
-                rowoffset = (rowoffset + 1) % 2;
-
-                if (checkGameOver()) {
-                    return;
-                }
+             addBubbles();
+             turncounter = 0;
 
             }
 
             nextBubble();
             setGameState(gamestates.ready);
-                      
+            
+            checkGameOver();
 
         }
 
@@ -551,18 +548,19 @@ window.onload = function() {
 
         }
 
+
         //Shifts bubbles down and adds new bubbles at the top
         function addBubbles() {
             for (var i=0; i<level.columns; i++) {
-                for (var j=0; j<level.rows-1; j++) {
-                    level.tiles[i][level.rows-1-j]. type = level.tiles[i][level.rows-1-j-1].
-                    type;
+                for (var j = level.rows - 1; j > 0; j--) {
+                    level.tiles[i][j]. type = level.tiles[i][j - 1].type;
+                   
                 }
-            } 
 
-            for (var i=0; i<level.columns; i++) {
-                level.tiles[i][0].type = getExistingColor();
-            }
+                  level.tiles[i][0].type = getExistingColor();
+            } 
+        
+           
         }
 
         //Returns a list of all bubble colors currently in the grid
@@ -737,6 +735,7 @@ window.onload = function() {
             var yoffset = level.tileheight/2;
 
             //Draw grid background
+            
             context.fillStyle = "#dbdbdb"
             context.fillRect(level.x - 4, level.y - 4, level.width + 8, level.height + 4 - yoffset);
 
@@ -768,6 +767,18 @@ window.onload = function() {
 
             renderPlayer(); //Draw player bubble and aiming line
 
+
+            //Draw win screen 
+            if (gamestate == gamestates.gamewin) {
+                context.fillStyle = "rgba(0, 0, 0, 0.8)";
+                context.fillRect(level.x - 4, level.y - 4, level.width + 8, level.height + 2 * level.tileheight + 8 - yoffset);
+
+                context.fillStyle = "#56c204";
+                context.font = "28px Verdana";
+                drawCenterText("You Win!", level.x, level.y + level.height / 2 + 10, level.width);
+                drawCenterText("Click to play again", level.x, level.y + level.height / 2 + 40, level.width);
+            }
+
             //Draw game over screen
             if (gamestate == gamestates.gameover) {
                 context.fillStyle = "rgba(0, 0, 0, 0.8)";
@@ -788,7 +799,7 @@ window.onload = function() {
             context.fillStyle = "e8eaec";
             context.fillRect(0, 0, canvas.width, canvas.height);
 
-            context.fillStyle = "#01121c";
+            context.fillStyle = "#215a2bff";
             context.fillRect(0, 0, canvas.width, 79);
 
             context.fillStyle = "#ffffff";
@@ -797,7 +808,7 @@ window.onload = function() {
 
             context.fillStyle = "#ffffff";
             context.font = "12px Verdana";
-            context.fillText("Fps: " + fps, 13, 57);
+            
             
         } 
 
@@ -892,7 +903,7 @@ window.onload = function() {
             let dir = getDirection(angle);
             let currentAngle = angle;
 
-            const maxVertical  = 100;
+            const maxVertical  = 90;
             const maxDiagonal = 300;
             const maxSteps = maxVertical + (1 - Math.abs(dir.dy)) * (maxDiagonal - maxVertical);
 
@@ -917,13 +928,15 @@ window.onload = function() {
                     nextX = level.x + (level.x - nextX); // reflect distance past wall
                     currentAngle = 180 - currentAngle;
                     curDir = getDirection(currentAngle);
+               
                 }
 
                 // Bounce off right wall
-                if (nextX >= level.x + level.width - level.tilewidth) {
-                    nextX = (level.x + level.width - level.tilewidth) - (nextX - (level.x + level.width - level.tilewidth));
+                if (nextX >= level.x + level.width) {
+                    nextX = (level.x + level.width) - (nextX - (level.x + level.width));
                     currentAngle = 180 - currentAngle;
                     curDir = getDirection(currentAngle);
+                                    
                 }
 
                 // Stop at top
@@ -972,16 +985,17 @@ window.onload = function() {
             
         } 
         
-        const TOTAL_BUBBLES_IN_SPRITE = 7; // Number of different bubbles in the sprite sheet
-
+        
         //Draws a bubble from the sprite sheet at x,y
         function drawBubble(x, y, index) {
             if (index < 0 || index >= bubblecolors)
                 return;
 
-            var spriteWidth = bubbleimage.width / TOTAL_BUBBLES_IN_SPRITE;
-            var spriteHeight = bubbleimage.height;
-                    
+            const TOTAL_BUBBLES_IN_SPRITE = 7; // Number of different bubbles in the sprite sheet
+            const spriteWidth = bubbleimage.width / TOTAL_BUBBLES_IN_SPRITE;
+            const spriteHeight = bubbleimage.height;
+
+                                
             context.drawImage(
                 bubbleimage,
                 index * spriteWidth, 0, spriteWidth, spriteHeight,
@@ -1007,15 +1021,15 @@ window.onload = function() {
 
         //Returns a random bubble type currently existing on the grid
         function getExistingColor() {
-            existingcolors = findColors();
+            let existingcolors = findColors();
 
-            var bubbletype = 0;
+           
             if (existingcolors.length > 0) {
 
-                return existingcolors[randRange(0, Math.floor(existingcolors.length/2))];
+                return existingcolors[randRange(0, existingcolors.length - 1)];
             }
 
-            return bubbletype;
+            return 0;
 
         }
 
@@ -1095,14 +1109,13 @@ window.onload = function() {
 
         //Handles mouse clucks to shoot bubble or restart game
         function onMouseDown(e) {
-
-            var pos = getMousePos(canvas, e);
-
+         
             if (gamestate == gamestates.ready) {
                 shootBubble();
-            } else if (gamestate === gamestates.gameover) {
+            } else if (gamestate === gamestates.gameover || gamestate === gamestates.gamewin) {
                 newGame(); //Restart game
             }
+        
         }
 
         //Converts mouse event coordinates to canvas coordinates
@@ -1117,4 +1130,4 @@ window.onload = function() {
 
         init(); // Call the initialization function to stat the game
 
-};
+    };            
