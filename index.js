@@ -2,6 +2,14 @@ window.onload = function() {
     var canvas = document.getElementById("viewport");
     var context = canvas.getContext("2d");
 
+    const btn = document.getElementById("restartBtn");
+
+    btn.addEventListener("click", function(){
+        newGame(currentLevel);
+        gamestate = gamestates.ready;
+        btn.style.display = "none";
+    });
+
     //Frame tracking variables for FPS calculation
     var lastframe = 0;
     var fpstime = 0;
@@ -727,6 +735,36 @@ window.onload = function() {
             context.fillText(text, x + (width=textdim.width)/2, y);
         }
 
+        function drawPopupBox(title, boxColor, textColor) {
+            const boxWidth = 300;
+            const boxHeight = 120;
+
+            const centerX = level.x + level.width / 2;
+            const centerY = level.y + level.height / 2;
+
+            const x = centerX - boxWidth / 2;
+            const y = centerY - boxHeight / 2;
+
+            context.fillStyle = boxColor;
+            context.strokeStyle = "#434040ff";
+            context.lineWidth = 3;
+            context.fillRect(x, y, boxWidth, boxHeight);
+            context.strokeRect(x, y, boxWidth, boxHeight);
+
+            const boxCenterX = x + boxWidth / 2;
+            
+
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+
+
+            context.fillStyle = textColor;
+            context.font = "bold 24px Arial";
+            context.fillText(title, boxCenterX, y + 40);
+
+            
+        } 
+
         //Main render function called every frame
         function render() {
 
@@ -769,28 +807,33 @@ window.onload = function() {
 
 
             //Draw win screen 
-            if (gamestate == gamestates.gamewin) {
-                context.fillStyle = "rgba(0, 0, 0, 0.8)";
-                context.fillRect(level.x - 4, level.y - 4, level.width + 8, level.height + 2 * level.tileheight + 8 - yoffset);
+            if (gamestate == gamestates.gamewin || gamestate == gamestates.gameover) {
+                // Popup box dimensions
+                let boxWidth = 300;
+                let boxHeight = 120;
+                let centerX = level.x + level.width / 2;
+                let centerY = level.y + level.height / 2;
+                let x = centerX - boxWidth / 2;
+                let y = centerY - boxHeight / 2;
 
-                context.fillStyle = "#56c204";
-                context.font = "28px Verdana";
-                drawCenterText("You Win!", level.x, level.y + level.height / 2 + 10, level.width);
-                drawCenterText("Click to play again", level.x, level.y + level.height / 2 + 40, level.width);
+                // Draw the popup text
+                if (gamestate == gamestates.gamewin) {
+                    drawPopupBox("YOU WIN!", "#fbfbfbff", "#000000ff");
+                } else {
+
+                    drawPopupBox("YOU LOSE!", "#fbfbfbff", "#000000ff");
+                }
+
+                // Show and position the restart button
+     
+                btn.style.display = "block";
+                btn.style.position = "absolute";
+                btn.style.left = x + (boxWidth / 2) - (btn.offsetWidth / 2 )+  15 + "px";
+                btn.style.top = y + 70 + "px";
+            } else {
+                btn.style.display = "none";
             }
 
-            //Draw game over screen
-            if (gamestate == gamestates.gameover) {
-                context.fillStyle = "rgba(0, 0, 0, 0.8)";
-                context.fillRect(level.x - 4, level.y - 4, level.width + 8, level.height + 2 *
-                level.tileheight + 8 - yoffset);
-
-                context.fillStyle = "#ffffff";
-                context.font = "24px Verdana";
-                drawCenterText("Game Over!", level.x, level.y + level.height / 2 + 10, level.width);
-                drawCenterText("Click to start", level.x, level.y + level.height / 2 + 40, level.width);
-
-            }
         }
 
         //Draws background and UI frame
@@ -1077,6 +1120,10 @@ window.onload = function() {
         //Updates player aiming angle based on mouse position
         function onMouseMove(e) {
 
+             if (gamestate === gamestates.gameover || gamestate === gamestates.gamewin) {
+                    return;
+                }
+
             var pos = getMousePos(canvas, e);
 
             var mouseangle = radToDeg(Math.atan2((player.y+level.tileheight/2) - pos.y, pos.x
@@ -1105,6 +1152,7 @@ window.onload = function() {
 
                 player.angle = mouseangle;
 
+               
         }
 
         //Handles mouse clucks to shoot bubble or restart game

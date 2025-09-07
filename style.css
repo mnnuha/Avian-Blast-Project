@@ -7,3 +7,22 @@ div{
     width: 100%;
     text-align: center;
 }
+
+#restartBtn {
+    display: none;
+    position: absolute;
+    padding: 10px 10px 10px 10px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: none;
+    background-color: #f1220b;
+    color: #ffffff;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.3s ease;
+   
+}
+
+#restartBtn:hover {
+    background-color: #f57062;
+}
