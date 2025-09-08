@@ -863,16 +863,12 @@ window.onload = function() {
         //Draws background and UI frame
         function drawFrame() {
             
-            context.fillStyle = "e8eaec";
+            context.fillStyle = "#e8eaec";
             context.fillRect(0, 0, canvas.width, canvas.height);
 
             context.fillStyle = "#215a2bff";
             context.fillRect(0, 0, canvas.width, 79);
-
-            context.fillStyle = "#ffffff";
-            context.font = "24px Verdana";
-            context.fillText("Bubble Shooter", 10, 37);
-
+            
             context.fillStyle = "#ffffff";
             context.font = "12px Verdana";
             
