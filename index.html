@@ -9,10 +9,38 @@
 </head>
 <body>
 
-    <div>
-    <canvas id = 'viewport' width="640" height="720"></canvas>
+    <div id="menuScreen">
+        <div class="Box">
+            <h1>BUBBLE SHOOTER</h1>
+            <button id = "playBtn" >Play</button>
+            <button id = "tutorialBtn">Tutorial</button>
 
-    <button id="restartBtn">RESTART</button> 
+        </div>
+        
+    </div>
+
+    <div>
+
+    <div id="gameContainer">
+        <canvas id = 'viewport' width="640" height="720"></canvas>
+        <button id="restartBtn">RESTART</button>
+    </div>    
+    
+    
+    <div id="tutorialPopup">
+        <div class="popupContent">
+            <h2>HOW TO PLAY</h2>
+            <ul>
+                <li>Aim with your mouse.</li>
+                <li>Click to shoot a bubble.</li>
+                <li>Match <strong>3 or more of the same color</strong> to pop them.</li>
+                <li>Don't let the bubbles reach the bottom!</li>
+            </ul>
+            <button id="closeTutorial">Close</button>
+
+        </div>
+
+    </div>
     </div>
     <script src="index.js"></script>
     

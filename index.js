@@ -2,14 +2,38 @@ window.onload = function() {
     var canvas = document.getElementById("viewport");
     var context = canvas.getContext("2d");
 
-    const btn = document.getElementById("restartBtn");
+    
 
-    btn.addEventListener("click", function(){
-        newGame(currentLevel);
-        gamestate = gamestates.ready;
-        btn.style.display = "none";
+    const menuScreen = document.getElementById("menuScreen");
+    const playBtn = document.getElementById("playBtn");
+    const tutorialBtn = document.getElementById("tutorialBtn");
+    const tutorialPopup = document.getElementById("tutorialPopup");
+    const closeTutorial = document.getElementById("closeTutorial");
+    const restartBtn = document.getElementById("restartBtn");
+
+    playBtn.addEventListener("click", () => {
+        menuScreen.style.display = "none"; // hide menu
+        startGame(); // start your game (you already have this function)
     });
 
+    tutorialBtn.addEventListener("click", () => {
+        tutorialPopup.classList.add("show"); // show popup
+       
+    });
+
+    closeTutorial.addEventListener("click", () => {
+        tutorialPopup.classList.remove("show"); // hide popup
+        
+    });
+
+
+    restartBtn.addEventListener("click", () => {
+        restartBtn.style.display = "none";
+        newGame(currentLevel); // reset level
+        gamestate = gamestates.ready;
+    });
+
+       
     //Frame tracking variables for FPS calculation
     var lastframe = 0;
     var fpstime = 0;
@@ -37,7 +61,7 @@ window.onload = function() {
 
     //Configuration for levels (rows, number of colors)
     var levelsConfig = {
-        1: {rows: 8, bubblecolors: 5},
+        1: {rows: 14, bubblecolors: 5},
        
     };
 
@@ -826,13 +850,13 @@ window.onload = function() {
 
                 // Show and position the restart button
      
-                btn.style.display = "block";
-                btn.style.position = "absolute";
-                btn.style.left = x + (boxWidth / 2) - (btn.offsetWidth / 2 )+  15 + "px";
-                btn.style.top = y + 70 + "px";
-            } else {
-                btn.style.display = "none";
+               restartBtn.style.display = "block";
+             
+                            
+            }  else {
+                restartBtn.style.display = "none";
             }
+
 
         }
 
