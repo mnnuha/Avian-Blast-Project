@@ -87,7 +87,7 @@ window.onload = function() {
                     x: 0,
                     y: 0,
                     angle: 0, 
-                    speed: 1000,
+                    speed: 550,
                     dropspeed: 900,
                     tiletype: 0,
                     visible: false 
@@ -267,17 +267,21 @@ window.onload = function() {
             player.bubble.y += dt * player.bubble.speed * -1*Math.sin(degToRad(player.bubble.angle));
 
             //Bounce on walls
-            if (player.bubble.x <= level.x) {
-                
-                player.bubble.angle = 180 - player.bubble.angle;
-                player.bubble.x = level.x;
-
-            } else if (player.bubble.x + level.tilewidth >= level.x + level.width) {
-
-                player.bubble.angle = 180 - player.bubble.angle;
-                player.bubble.x = level.x + level.width - level.tilewidth;
             
-            } 
+            if (player.bubble.x <= level.x) {
+                player.bubble.angle = 180 - player.bubble.angle;
+                player.bubble.angle = (player.bubble.angle + 360) % 360; // normalize angle
+                player.bubble.x = level.x;
+            } else if (player.bubble.x + level.tilewidth >= level.x + level.width) {
+                player.bubble.angle = 180 - player.bubble.angle;
+                player.bubble.angle = (player.bubble.angle + 360) % 360; // normalize angle
+                player.bubble.x = level.x + level.width - level.tilewidth;
+            }
+
+            //Move bubble after bounce correction
+            player.bubble.x += dt * player.bubble.speed * Math.cos(degToRad(player.bubble.angle));
+            player.bubble.y += dt * player.bubble.speed * -Math.sin(degToRad(player.bubble.angle));
+
 
             //Hit top of screen
             if (player.bubble.y <= level.y) {
@@ -966,7 +970,7 @@ window.onload = function() {
             let dir = getDirection(angle);
             let currentAngle = angle;
 
-            const maxVertical  = 90;
+            const maxVertical  = 100;
             const maxDiagonal = 300;
             const maxSteps = maxVertical + (1 - Math.abs(dir.dy)) * (maxDiagonal - maxVertical);
 
@@ -989,16 +993,18 @@ window.onload = function() {
                 // Bounce off left wall
                 if (nextX <= level.x) {
                     nextX = level.x + (level.x - nextX); // reflect distance past wall
-                    currentAngle = 180 - currentAngle;
+                    currentAngle = (180 - currentAngle + 360) % 360;
                     curDir = getDirection(currentAngle);
+
                
                 }
 
                 // Bounce off right wall
                 if (nextX >= level.x + level.width) {
                     nextX = (level.x + level.width) - (nextX - (level.x + level.width));
-                    currentAngle = 180 - currentAngle;
+                    currentAngle = (180 - currentAngle + 360) % 360;
                     curDir = getDirection(currentAngle);
+
                                     
                 }
 
